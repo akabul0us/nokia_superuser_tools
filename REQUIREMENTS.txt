@@ -1,0 +1,54 @@
+This collection of tools makes use of various common command-line tools that should be present in nearly every distribition of GNU/Linux. If any scripts fail because you're missing one of these packages, search your package manager for them.
+
+Those who wish to use these tools on Android (via Termux) will have to setup several tools not included by default. To make this easier, you can simply copy and paste the Termux section and press enter.
+What this functionally means is that Android users with little to no experience using Linux should be able to get this working quickly as I have made the decision to be extra-helpful. What it does NOT mean is that there is nothing to learn. If something fails, figure out why.
+
+MacOSX users may download and setup macports, homebrew, or both to easily add necessary packages, however this operating system is not a main target for these tools so you will have to figure this out by yourself.
+
+Windows is not supported (nor will it ever be), although if you are stuck using Windows there ought to be a way to get these tools working on it. That's up to you.
+
+iOS is not supported, although if you jailbreak an iPhone and manage to add these tools to the underlying Darwin shell, please send us a screenshot because that's hilarious.
+
+
+REQUIRED
+
+curl
+python3 (with pycryptodome module)**
+bash
+grep
+unix2dos
+sed
+xargs
+cut
+ssh (client for outgoing connections)
+
+OPTIONAL
+
+nmap
+geoiplookup/ipinfo
+
+INSTALLING ON TERMUX
+
+thisrepo="$(pwd)"
+cd /data/data/com.termux/files/home
+pkg update && pkg upgrade -y
+apt install python python-pip rust golang git openssh curl nmap sed -y
+pip install pycryptodome
+mkdir -p $/.local/bin
+git clone https://github.com/ipinfo/cli ~/ipinfo-cli && cd ~/ipinfo-cli && go install ./ipinfo
+cd ~/ && git clone https://github.com/dead10ck/urlencode && cd urlencode && cargo install urlencode
+cp $thisrepo/exploitation/nokia-use-ip-cfg ~/.local/bin/ && cp $thisrepo/exploitation/nokia-xml-editor ~/.local/bin/
+echo 'export PATH=/data/data/com.termux/files/home/.local/bin:/data/data/com.termux/files/home/go/bin:/data/data/com.termux/files/home/.cargo/bin:$PATH' >> /data/data/com.termux/files/usr/etc/bash.bashrc
+source /data/data/com.termux/files/usr/etc/bash.bashrc
+
+**Note on packages for Python3: Although on Termux you can use pip without much of an issue, this varies greatly by distribution. Your package manager may provide the pycryptodome package, or you may be advised to execute in a virtual environment like Anaconda. This one is up to you.
+
+INSTALLING ON GNU/LINUX 
+
+install go, git and rust if you don't have them with your package manager
+make sure your $PATH includes ~/.local/bin
+
+thisrepo="$(pwd)"
+git clone https://github.com/ipinfo/cli ~/ipinfo-cli && cd ~/ipinfo-cli && go install ./ipinfo
+cd ~/ && git clone https://github.com/dead10ck/urlencode && cd urlencode && cargo install urlencode
+cp $thisrepo/exploitation/nokia-use-ip-cfg $thisrepo/exploitation/nokia-xml-editor ~/.local/bin/
