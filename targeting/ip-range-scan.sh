@@ -1,4 +1,8 @@
 #!/bin/bash
+red='\033[0;31m'
+green='\033[0;32m'
+yellow='\033[0;33m'
+clear='\033[0m'
 which nmap > /dev/null
 exit=$?
 if [ $exit -eq 1 ]; then
@@ -35,7 +39,9 @@ fi
 cat $tempdir/scan01 >> $tempdir/scan00
 cat $tempdir/scan00
 echo "Checking these IPs for the following parameters:"
+printf "${yellow}"
 echo "Title: GPON Home Gateway"
+printf "${clear}"
 curl_check () {
 ips_2c="$(cat $tempdir/scan01 | sed 's/\n/\ /g')"
 for I in $ips_2c; do
@@ -43,15 +49,17 @@ for I in $ips_2c; do
     curl -m 15 -s --insecure https://$I | grep -m1 -oE "GPON Home Gateway" > /dev/null
     exit_status=$?
     if [ $exit_status -eq 1 ]; then
-       printf "Non-Nokia\n"
+       printf "${red}Non-Nokia\n${clear}"
     else
-       printf "Nokia detected\n"
+       printf "${green}Nokia detected\n${clear}"
     fi
 done
 }
 curl_check | tee $tempdir/scan02
 cat $tempdir/scan02 | grep "Nokia detected" | rev | cut -c 15- | rev > $tempdir/scan03
 echo "Final list:"
+printf "${green}"
 cat $tempdir/scan03
 rm $tempdir/scan00 $tempdir/scan01 $tempdir/scan02 $tempdir/scan03
+printf "${clear}"
 exit 0

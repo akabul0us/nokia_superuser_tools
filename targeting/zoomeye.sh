@@ -31,6 +31,13 @@ fi
 if [ ! -d "$HOME/.tmp" ]; then
     mkdir $HOME/.tmp
 fi
+echo "Checking if Zoomeye is up..."
+curl -m 15 -s https://www.zoomeye.ai > /dev/null
+zoomeye_status=$?
+if [ $zoomeye_status != 0 ]; then
+    echo "It appears that Zoomeye's servers are down."
+    exit $zoomeye_status
+fi
 red='\033[0;31m'
 green='\033[0;32m'
 yellow='\033[0;33m'
