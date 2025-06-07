@@ -1,0 +1,4 @@
+#ignore any tarballs or tar archives
+*.tgz
+*.tar
+*.tar.gz

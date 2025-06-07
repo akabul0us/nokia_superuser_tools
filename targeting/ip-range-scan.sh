@@ -57,9 +57,9 @@ done
 }
 curl_check | tee $tempdir/scan02
 cat $tempdir/scan02 | grep "Nokia detected" | rev | cut -c 15- | rev > $tempdir/scan03
-echo "Final list:"
 printf "${green}"
+echo "Final list:"
+printf "${clear}"
 cat $tempdir/scan03
 rm $tempdir/scan00 $tempdir/scan01 $tempdir/scan02 $tempdir/scan03
-printf "${clear}"
 exit 0

@@ -35,8 +35,17 @@ echo "Checking if Zoomeye is up..."
 curl -m 15 -s https://www.zoomeye.ai > /dev/null
 zoomeye_status=$?
 if [ $zoomeye_status != 0 ]; then
-    echo "It appears that Zoomeye's servers are down."
-    exit $zoomeye_status
+    echo "It appears that Zoomeye's servers are down..."
+    echo "Pinging IP address 154.93.109.29..."
+    ping -w 10 154.93.109.29 > /dev/null 2>/dev/null
+    ping_status="$?"
+    if [ "$ping_status" != 0 ]; then
+        echo "Got no response."
+        exit $ping_status
+    else
+        echo "Ping worked - check your DNS settings"
+        exit $zoomeye_status
+    fi
 fi
 red='\033[0;31m'
 green='\033[0;32m'
