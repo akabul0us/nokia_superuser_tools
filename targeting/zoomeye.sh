@@ -1,4 +1,8 @@
 #!/bin/bash
+red='\033[0;31m'
+green='\033[0;32m'
+yellow='\033[0;33m'
+clear_color_color='\033[0m'
 query_base='title%3A%22GPON%20Home%20Gateway%22%2Bport%3A%22443%22%2B%22jQuery%201.12%22'
 API_KEY="$(cat $HOME/.zoomeye_api_key)"
 if [ ! -f $HOME/.zoomeye_api_key ]; then
@@ -22,6 +26,28 @@ if [ $exit_status = 1 ]; then
    echo "or if you have the Rust package manager Cargo installed, with"
    echo "cargo install urlencode"
 fi
+while getopts ":hpm" opt; do
+   case $opt in
+   h)
+     echo "This script can be run with no arguments to run a default search,"
+     echo "or with -p (plus) -m (minus) followed by up to two additional arguments."
+     echo 'ex: ./zoomeye-nokia.sh -m "country=Brazil"'
+     exit 0
+     ;;
+   p)
+     #plus sign URL encoded
+     modifier='%2B'
+     ;;
+   m)
+     modifier='-'
+     ;;
+  \?)
+     echo "Executed with no -m or -p flag: assuming -p"
+     modifier='%2B'
+     ;;
+   esac
+done
+shift $((OPTIND-1))
 if [ ! -z $1 ]; then
     first_arg="$(urlencode "$1")"
 fi
@@ -47,10 +73,6 @@ if [ $zoomeye_status != 0 ]; then
         exit $zoomeye_status
     fi
 fi
-red='\033[0;31m'
-green='\033[0;32m'
-yellow='\033[0;33m'
-clear='\033[0m'
 echo 'Searching Zoomeye for:'
 printf "${red}"
 echo "Title: GPON Home Gateway"
@@ -58,20 +80,19 @@ printf "${yellow}"
 echo "Port: 443"
 printf "${green}"
 echo "jQuery 1.12"
-printf "${clear}"
+printf "${clear_color}"
 if  [ ! -z $first_arg ]; then
     printf "${yellow}"
     printf "$(urlencode -d $first_arg)"
-    printf "${clear}"
+    printf "${clear_color}"
     echo ""
 fi
 if  [ ! -z $second_arg ]; then
     printf "${red}"
     printf "$(urlencode -d $second_arg)"
-    printf "${clear}"
+    printf "${clear_color}"
     echo ""
 fi
-plus='%2B'
 curl_request () {
 curl -s -X GET "https://api.zoomeye.ai/host/search?query=$get_request" -H "API-KEY:$API_KEY" | grep -oE "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)" | sort -u | tee $HOME/.tmp/iplist
 }
@@ -79,27 +100,25 @@ echo "IPs matching query terms:"
 printf "${red}"
 if  [ ! -z $first_arg ]; then
     if  [ ! -z $second_arg ]; then
-        get_request="${query_base}${plus}${first_arg}${plus}${second_arg}"
+        get_request="${query_base}${modifier}${first_arg}${modifier}${second_arg}"
         curl_request
     else
-       get_request="${query_base}${plus}${first_arg}"
+       get_request="${query_base}${modifier}${first_arg}"
        curl_request
     fi
 else
     get_request="${query_base}"
     curl_request
 fi
-printf "${clear}"
-if ! command -v ipinfo 2>&1 >/dev/null
-    then
-        if ! command -v geoiplookup 2>&1 >/dev/null
-           then
+printf "${clear_color}"
+if ! command -v ipinfo 2>&1 >/dev/null; then
+        if ! command -v geoiplookup 2>&1 >/dev/null; then
            echo "No geoip tool found, exiting..."
            exit 1
         else
            geoip="geoiplookup"
         fi
-    else
+else
         geoip="ipinfo"
 fi
 if [[ ! -z $(cat $HOME/.tmp/iplist) ]]; then
@@ -109,13 +128,13 @@ if [[ ! -z $(cat $HOME/.tmp/iplist) ]]; then
        cat $HOME/.tmp/iplist | tr '\n' ' ' > $HOME/.tmp/iplist-space
        ips_to_search="$(cat $HOME/.tmp/iplist-space)"
        for i in $ips_to_search; do
-           ipinfo $i | grep -v "Core" | grep -v "Anycast" | head -n 5
-           printf "\n"
+          ipinfo $i | grep -v "Core" | grep -v "Anycast" | head -n 5
+          printf "\n"
        done
        rm $HOME/.tmp/iplist-space
     else
        cat $HOME/.tmp/iplist | xargs -n 1 $geoip
     fi
 rm $HOME/.tmp/iplist
-printf "${clear}"
+printf "${clear_color}"
 fi

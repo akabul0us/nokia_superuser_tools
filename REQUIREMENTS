@@ -1,0 +1,45 @@
+This collection of tools makes use of various common command-line tools that 
+should be present (or available) in nearly every distribition of GNU/Linux, namely:
+
+bash
+curl
+sed
+xargs
+cut
+grep
+
+It also makes use of other rather common commmand line tools that it might be necessary to explicitly install:
+
+python3 (with Crypto/Pycryptodome module)
+unix2dos
+ssh (OpenSSH or Dropbear)
+nmap
+
+Finally, it makes use of some less common packages which you will likely need to add:
+
+urlencode (https://github.com/dead10ck/urlencode)
+ipinfo (https://github.com/ipinfo/cli)
+sshpass (https://github.com/kevinburke/sshpass)
+
+Additionally, in order to transfer files to/from exploited devices, 
+you may wish to install one or more of the following:
+
+python3 module http.server
+netcat
+ngrok (or another tunneling service)
+
+If any scripts fail because you're missing one of these packages, search your package manager.
+
+Those who wish to use these tools on Android (via Termux) will have to setup several tools not included by default. 
+
+MacOSX users may download and setup macports, homebrew, or both to easily add necessary packages, 
+however this operating system is not a main target for these tools so you will have to figure this out by yourself.
+
+Windows is not supported (nor will it ever be), although if you are stuck using 
+Windows there ought to be a way to get these tools working on it. That's up to you.
+
+iOS is not supported, although if you jailbreak an iPhone and add these tools to the Darwin shell, 
+please send us a screenshot, as that would be hilarious.
+
+*BSD users should not encounter issues (unless there are Linux-isms which have gone unnoticed)
+although none of these tools have been explicitly tested under *BSD.
