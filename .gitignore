@@ -2,3 +2,7 @@
 *.tgz
 *.tar
 *.tar.gz
+#ignore any .swp files
+*.swp
+#ignore .cfg files
+*.cfg

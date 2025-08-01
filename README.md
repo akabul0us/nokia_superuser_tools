@@ -160,15 +160,21 @@ been statically linked. \(Even maintainers of these devices using
 the official propietary toolchains struggle to get them to work: 
 see https://github.com/lxc/lxc/issues/3440\).  
 
+The issue with static binaries is obvious -- they use more disk
+space than dynamically linked binaries, and these are devices
+with limited disk space. While the scripts assume /configs/bin
+and /logs/chungus are the locations in which exploited devices
+will have the files placed (this because both directories have
+filesystems that will survive a reboot), if you include the 
+experimental binaries, these locations may not have enough space.
+On devices that have /flash present, the recommendation is to
+extract the tarball there, then make symbolic links for /flash/bin
+at /configs/bin and /flash/chungus at /logs/chungus.
+
 There are several ways to get these files onto the target device,
 as their stock firmware contains curl, wget, nc, and plenty of 
 other fun tools \(including tcpdump\). \(They are badly deprecated 
-versions, so make sure to check syntax\).  To persist after reboots, 
-the target for these binaries is /configs/bin, /configs being the 
-mount point for one of the UBI filesystems.  As space is limited, 
-it is advisable to use /var as a staging area. Devices with a UBI
-block available at /flash can also use this and simply symlink 
-/configs/bin to /flash/bin.
+versions, so make sure to check syntax\).
 
 In some cases, files larger than ~400K fail to upload over WAN. 
 You can split and then concatenate the files, compress with bzip2/gzip,
@@ -177,28 +183,89 @@ device before beginning this process\).  Only do this if necessary -
 some devices will accept everything in both scripts and the appropriate 
 bins directory as one big tarball.
 
+ex:
+
+`user:~:$ nokia-connect xx.xx.xx.xx 8022
+Connecting to xx.xx.xx.xx on port 8022
+Login fail count since last successful login: 1205
+Last successful login date and time: Date:1969-12-31 Time:19:05:02
+[root@AONT: ONTUSER]# df -h
+Filesystem                Size      Used Available Use% Mounted on
+/dev/root                22.4M     22.4M         0 100% /
+devtmpfs                113.2M         0    113.2M   0% /dev
+tmpfs                   113.2M      4.0M    109.1M   4% /tmp
+tmpfs                   113.2M         0    113.2M   0% /dev
+tmpfs                    32.0M    656.0K     31.4M   2% /etc
+tmpfs                   113.2M         0    113.2M   0% /dev/shm
+tmpfs                   113.2M         0    113.2M   0% /mnt
+/var                    113.2M     56.0K    113.1M   0% /var
+/dev/ubi1_0               8.2M      6.5M      1.2M  84% /logs
+/dev/ubi0_0               4.7M    464.0K      4.0M  10% /configs
+/dev/ubi2_0              96.2M     28.0K     91.5M   0% /flash
+tmpfs                     2.0M     64.0K      1.9M   3% /userfs
+none                    113.2M         0    113.2M   0% /sys/fs/cgroup
+[root@AONT: ONTUSER]# cd /flash
+[root@AONT: /flash]# head /proc/cpuinfo
+system type		: EcoNet EN7528 SOC
+machine			: econet,en751221
+processor		: 0
+cpu model		: MIPS 1004Kc V2.15
+BogoMIPS		: 591.87
+wait instruction	: yes
+microsecond timers	: yes
+tlb_entries		: 32
+extra interrupt vector	: yes
+hardware watchpoint	: yes, count: 4, address/irw mask: [0x0ffc, 0x0ffc, 0x0ffb, 0x0ffb]
+
+user:~:$ cd nokia_superuser_tools/post_exploitation
+user:~/nokia_superuser_tools/post_exploitation:$ ./make_tarball.sh mipsle
+Include experimental binaries? (y/N) y
+Tarball mipsle.tgz created
+
+[root@AONT: /flash]# iptables -P INPUT ACCEPT
+[root@AONT: /flash]# iptables -I INPUT -p tcp --dport 4545 -j ACCEPT
+[root@AONT: /flash]# nc -l -p 4545 > mipsle.tgz < /dev/null
+
+user:~/nokia_superuser_tools/post_exploitation:$ cat mipsle.tgz | nc xx.xx.xx.xx 4545
+user:~/nokia_superuser_tools/post_exploitation:$ md5sum mipsle.tgz
+19f7ae8fbb5e20a0f1b9f7568f4a81aa  mipsle.tgz
+
+[root@AONT: /flash]# md5sum mipsle.tgz
+19f7ae8fbb5e20a0f1b9f7568f4a81aa  mipsle.tgz
+
+[root@AONT: /flash]# tar xzf mipsle.tgz
+[root@AONT: /flash]# ln -s /flash/bin /configs/bin
+[root@AONT: /flash]# ln -s /flash/chungus /logs/chungus
+[root@AONT: /flash]# export PATH=/configs/bin:$PATH
+[root@AONT: /flash]# busybox-install-applets.sh && dropbear-symlinks.sh`
+
 
 ##SCRIPTS 
  
 `fix-mount`
-Find which mount points have nodev, noexec, and/or nosuid tags and remove them 
+   Find which mount points have nodev, noexec, and/or nosuid tags and remove them 
 `fix-ssh`
-runs the new dropbear server on port 2244
+   runs the new dropbear server on port 2244
 `update-profile`
-Runs in the background rewriting /etc/profile and /etc/home/ONTUSER/.bashprofile  with desirable parameters   \(to execute as a background process, append & \)
+   Runs in the background rewriting /etc/profile and /etc/home/ONTUSER/.bashprofile  
+   with desirable parameters   \(to execute as a background process, append & \)
 `update-iptables`
-changes iptables policies to be as permissive as possible without breaking connectivity 
+   changes iptables policies to be as permissive as possible 
+   without breaking connectivity 
 `new-seconf`
-uses dirtyc0w exploit to rewrite read-only file /usr/etc/se.conf with security disabled
+   uses dirtyc0w exploit to rewrite read-only file 
+   /usr/etc/se.conf with security disabled
 `new-guardian`
-uses dirtyc0w exploit to rewrite read-only file /usr/exe/data_guardian.sh and allow modifications 
+   uses dirtyc0w exploit to rewrite read-only file 
+   /usr/exe/data_guardian.sh and allow modifications 
 `chungus-web`
-mounts a tmpfs on top of /webs, copies the gpon home chungus webpage to it, and runs busybox httpd instead of thttpd pointing to it
+   mounts a tmpfs on top of /webs, copies the gpon home chungus webpage to it, 
+   and runs busybox httpd instead of thttpd pointing to it
 
 ##DISCLAIMER
 
 The fact of the matter is that all of the security issues on these devices can 
-be fixed without replacing any hardware. There are MIPS routers with the exact 
+be fixed without replacing any hardware. There are routers with the exact 
 CPU types found in these devices running the latest kernels. 
 
 These security flaws are there because Nokia doesn't care enough to fix them, 
