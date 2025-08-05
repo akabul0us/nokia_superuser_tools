@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+red='\033[0;31m'
+green='\033[0;32m'
+yellow='\033[0;33m'
+clear_color='\033[0m'
 echo "This will build dependencies from source, which may take a considerable amount of time depending on your system."
 echo "You will need a C/C++ compiler (preferably GCC), Golang, and Cargo (rust) installed to do this, plus any libraries required for each build."
 echo "You will also need python3, git, and GNU make installed."
@@ -6,17 +10,17 @@ echo "Alternatively, you can search your package manager for compiled binaries o
 sleep 6
 printf "Checking for C compiler... "
 if command -v cc &> /dev/null; then
-    echo "yes"
+    printf "${green}yes${clear_color}\n"
 else
-    echo "no" 
+    printf "${red}no${clear_color}\n" 
     echo "Please install a C compiler"
     exit 1
 fi
 printf "Checking for C++ compiler... "
 if command -v c++ &> /dev/null; then
-      echo "yes"
+    printf "${green}yes${clear_color}\n"
 else
-    echo "no" 
+    printf "${red}no${clear_color}\n"
     echo "Please install a C++ compiler"
     exit 1
 fi

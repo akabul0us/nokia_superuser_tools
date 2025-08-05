@@ -2,7 +2,7 @@
 red='\033[0;31m'
 green='\033[0;32m'
 yellow='\033[0;33m'
-clear_color_color='\033[0m'
+clear_color='\033[0m'
 query_base='title%3A%22GPON%20Home%20Gateway%22%2Bport%3A%22443%22%2B%22jQuery%201.12%22'
 API_KEY="$(cat $HOME/.zoomeye_api_key)"
 if [ ! -f $HOME/.zoomeye_api_key ]; then
